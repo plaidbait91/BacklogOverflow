@@ -3,12 +3,14 @@ package com.example.backlogoverflow
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,7 +25,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,48 +34,58 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.backlogoverflow.database.CourseDao
+import com.example.backlogoverflow.database.CourseDatabase
 import com.example.backlogoverflow.ui.theme.BacklogOverflowTheme
 import com.example.backlogoverflow.viewmodel.CourseViewModel
+import com.example.backlogoverflow.viewmodel.CourseViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val application = requireNotNull(this).application
+
+        val dataSource = CourseDatabase.getInstance(application).courseDao
+        val viewModel: CourseViewModel by viewModels { CourseViewModelFactory(dataSource = dataSource) }
+
         setContent {
             BacklogOverflowTheme {
                 // A surface container using the 'background' color from the theme
-                MainScreen()
+                MainScreen(viewModel)
                 }
             }
         }
     }
 
+
 @Composable
-fun MainScreen() {
+fun MainScreen(viewModel: CourseViewModel) {
     val scaffoldState = rememberScaffoldState(rememberDrawerState(DrawerValue.Closed))
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
     // If you want the drawer from the right side, uncomment the following
     // CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    val title = stringResource(id = R.string.app_name)
     Scaffold(
         scaffoldState = scaffoldState,
-        topBar = { TopBar(scope = scope, scaffoldState = scaffoldState) },
+        topBar = { TopBar(scope = scope, scaffoldState = scaffoldState, title) },
         drawerBackgroundColor = colorResource(id = R.color.purple_700),
         drawerContent = {
             Drawer(scope = scope, scaffoldState = scaffoldState, navController = navController)
         },
-    ) {
-        Navigation(navController = navController)
+    )
+    {
+        Navigation(navController = navController, viewModel)
     }
     // }
 }
 
 @Composable
-fun TopBar(scope: CoroutineScope, scaffoldState: ScaffoldState) {
+fun TopBar(scope: CoroutineScope, scaffoldState: ScaffoldState, title: String) {
     TopAppBar(
-        title = { Text(text = stringResource(R.string.app_name), fontSize = 18.sp) },
+        title = { Text(text = title, fontSize = 18.sp) },
         navigationIcon = {
             IconButton(onClick = {
                 scope.launch {
@@ -216,22 +227,20 @@ fun DrawerPreview() {
 fun TopBarPreview() {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState(rememberDrawerState(DrawerValue.Closed))
-    TopBar(scope = scope, scaffoldState = scaffoldState)
+    TopBar(scope = scope, scaffoldState = scaffoldState, stringResource(R.string.app_name))
 }
 
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
     MainScreen()
-}
+}*/
 
 @Composable
-fun Navigation(navController: NavHostController) {
-    val x : CourseDao = CourseDao()
-    val test : CourseViewModel = CourseViewModel(x)
+fun Navigation(navController: NavHostController, viewModel: CourseViewModel) {
     NavHost(navController, startDestination = NavDrawerItem.Courses.nav) {
         composable(NavDrawerItem.Courses.nav) {
-            coursesScreen(test)
+            mainCoursesScreen(viewModel)
         }
         composable(NavDrawerItem.Pending.nav) {
             pendingScreen()
