@@ -108,7 +108,18 @@ fun coursesScreen(viewModel: CourseViewModel, navigation: NavHostController) {
                             deadline = 0L
                         )
                         val json = jsonAdapter.toJson(course)
-                        navigation.navigate(ADD_ROUTE.replace("{course}", json).replace("{editMode}", "false"))
+                        navigation.navigate(ADD_ROUTE.replace("{course}", json).replace("{editMode}", "false")) {
+                            navigation.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
                     }
                 ) {
                     Icon(Icons.Filled.Add,"")
@@ -167,7 +178,18 @@ fun courseRow(course: Course, navigation: NavHostController) {
                     ADD_ROUTE
                         .replace("{course}", json)
                         .replace("{editMode}", "true")
-                )
+                ) {
+                    navigation.graph.startDestinationRoute?.let { route ->
+                        popUpTo(route) {
+                            saveState = true
+                        }
+                    }
+                    // Avoid multiple copies of the same destination when
+                    // reselecting the same item
+                    launchSingleTop = true
+                    // Restore state when reselecting a previously selected item
+                    restoreState = true
+                }
             }
     ) {
         Text(
@@ -359,7 +381,18 @@ fun addCourseScreen(
                             viewModel.addCourse(new)
                         }
 
-                        navigation.navigate("courses_list")
+                        navigation.navigate("courses_list") {
+                            navigation.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
                     }) {
 
                     Text(text = if (editMode) "Edit course" else "Add course")
@@ -378,7 +411,18 @@ fun addCourseScreen(
                         )
 
                         viewModel.deleteCourse(delete)
-                        navigation.navigate("courses_list")
+                        navigation.navigate("courses_list") {
+                            navigation.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
                     }) {
                         Text(text = "Delete course")
                     }
@@ -413,13 +457,11 @@ fun addCourseScreen(
                                         val format = SimpleDateFormat("HH:mm:ss")
                                         daySelectedList[i] = format.format(time)
 
-                                        Log.v("TESTING MODE", i.toString())
                                     }
                                 }
 
                                 else {
                                     daySelectedList[i] = null
-                                    Log.v("TESTING MODE", i.toString())
                                 }
 
 
@@ -427,7 +469,7 @@ fun addCourseScreen(
                         )
 
                         Text(
-                            text = day.name.lowercase().capitalize(),
+                            text = day.name.lowercase().capitalize() + " " + (if(daySelectedList[i] != null) daySelectedList[i] else ""),
                             fontSize = 18.sp)
 
                         MaterialDialog(
