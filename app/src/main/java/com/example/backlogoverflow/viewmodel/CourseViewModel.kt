@@ -38,24 +38,47 @@ class CourseViewModel(val database: CourseDao): ViewModel() {
         }
     }
 
-    fun addCourse() {
+    fun addCourse(course: Course) {
         uiScope.launch {
-            val test = Course(
-                courseName = "testing",
-                timings = listOf(
-                    (System.currentTimeMillis()),
-                    (System.currentTimeMillis() + 84600000L),
-                    (System.currentTimeMillis() + 42300000L)),
-                deadline = (System.currentTimeMillis()),
-                links = listOf())
-            insert(test)
+            insert(course)
             loadCourses()
         }
     }
 
-    private suspend fun insert(test: Course) {
+    private suspend fun insert(entry: Course) {
         withContext(Dispatchers.IO) {
-            database.insertCourse(test)
+            database.insertCourse(entry)
+        }
+    }
+
+    fun editCourse(course: Course) {
+        uiScope.launch {
+            update(course)
+            loadCourses()
+        }
+    }
+
+    private suspend fun update(course: Course) {
+        withContext(Dispatchers.IO) {
+            database.updateCourse(course)
+        }
+    }
+
+    fun clearCourses() {
+        uiScope.launch {
+            withContext(Dispatchers.IO) {
+                database.clear()
+                loadCourses()
+            }
+        }
+    }
+
+    fun deleteCourse(course: Course) {
+        uiScope.launch {
+            withContext(Dispatchers.IO) {
+                database.deleteCourse(course)
+                loadCourses()
+            }
         }
     }
 }

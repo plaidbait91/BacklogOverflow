@@ -4,6 +4,14 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Dao
+
+
+
+
+
+
+
+
 interface CourseDao {
 
     @Insert
@@ -26,4 +34,7 @@ interface CourseDao {
 
     @Delete
     fun deleteCourse(course: Course)
+
+    @Query(value = "DELETE FROM courses")
+    fun clear()
 }

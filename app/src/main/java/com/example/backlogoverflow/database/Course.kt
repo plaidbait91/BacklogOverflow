@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalTime
 import java.util.*
 
 @Entity(tableName = "courses")
@@ -15,10 +16,10 @@ data class Course(
     val courseName: String,
 
     @ColumnInfo(name = "lecture_timings")
-    val timings: List<Long>,
+    val timings: MutableList<String?>,
 
     @ColumnInfo(name = "lecture_links")
-    val links: List<String>,
+    val links: MutableList<String>,
 
     @ColumnInfo(name = "recording_count")
     val count: Int = 0,
