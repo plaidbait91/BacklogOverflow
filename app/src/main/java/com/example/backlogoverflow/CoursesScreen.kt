@@ -2,6 +2,7 @@ package com.example.backlogoverflow
 
 import android.text.style.ClickableSpan
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.ColorRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +23,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -53,11 +55,25 @@ import java.util.Collections.addAll
 val moshi = Moshi.Builder().build()
 val jsonAdapter = moshi.adapter(Course::class.java).lenient()
 
-val ADD_ROUTE = "add_or_edit_course/{course}/{editMode}"
+val ADD_ROUTE = "add_or_edit_course/course={course}/{editMode}"
 var onClick = {}
 @Composable
 fun mainCoursesScreen(viewModel: CourseViewModel) {
     val navController = rememberNavController()
+    val warning = rememberMaterialDialogState()
+    MaterialDialog(
+        dialogState = warning,
+        buttons = {
+            positiveButton("OK")
+        }
+    ) {
+        title("Note")
+        message("Remember to remove 'https://' from any recording links you input in the course screen," +
+                " as this causes problems with the Navigation URI." +
+                " I'm working on resolving this as soon as I can. Thank you :)\n\n-plaidbait91")
+    }
+
+    warning.show()
     AddCourseNavigation(navController = navController, viewModel = viewModel)
 }
 
@@ -117,8 +133,6 @@ fun coursesScreen(viewModel: CourseViewModel, navigation: NavHostController) {
                             // Avoid multiple copies of the same destination when
                             // reselecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
-                            restoreState = true
                         }
                     }
                 ) {
@@ -174,6 +188,7 @@ fun courseRow(course: Course, navigation: NavHostController) {
             .background(Color.White)
             .clickable {
                 val json = jsonAdapter.toJson(course)
+
                 navigation.navigate(
                     ADD_ROUTE
                         .replace("{course}", json)
@@ -187,8 +202,6 @@ fun courseRow(course: Course, navigation: NavHostController) {
                     // Avoid multiple copies of the same destination when
                     // reselecting the same item
                     launchSingleTop = true
-                    // Restore state when reselecting a previously selected item
-                    restoreState = true
                 }
             }
     ) {
@@ -210,24 +223,6 @@ fun courseRow(course: Course, navigation: NavHostController) {
             .height(1.dp)
             .background(colorResource(id = R.color.gray))) {}
 }
-
-/*@Preview(showBackground = true)
-@Composable
-fun courseRowPreview() {
-    courseRow(Course(
-        courseName = "testing",
-        timings = mutableListOf(
-            LocalTime.now().toString()
-        ),
-        deadline = (System.currentTimeMillis()),
-        links = mutableListOf()))
-}*/
-
-/*@Preview(showBackground = true)
-@Composable
-fun coursesScreenPreview() {
-    coursesScreen(CourseViewModel())
-}*/
 
 @Composable
 fun emptyCoursesScreen() {
@@ -254,57 +249,13 @@ fun emptyPreview() {
 }
 
 @Composable
-fun pendingScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.white))
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(
-            text = "Pending View",
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            textAlign = TextAlign.Center,
-            fontSize = 25.sp
-        )
-    }
-}
-
-/*@Preview(showBackground = true)
-@Composable
-fun pendingScreenReview() {
-    pendingScreen()
-}*/
-
-@Composable
-fun profileScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.white))
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(
-            text = "Profile View",
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            textAlign = TextAlign.Center,
-            fontSize = 25.sp
-        )
-    }
-}
-
-@Composable
 fun addCourseScreen(
     course: Course,
     viewModel: CourseViewModel,
     navigation: NavHostController,
     editMode: Boolean) {
 
-    Log.v("TESTING MODE", editMode.toString())
+   val context = LocalContext.current
 
    val id = remember {
        course.id
@@ -357,42 +308,57 @@ fun addCourseScreen(
                 Button(
                     onClick = {
 
-
-                        if (editMode) {
-                            val edited = Course(
-                                id = id,
-                                courseName = name,
-                                timings = daySelectedList,
-                                links = linkList,
-                                count = count,
-                                deadline = deadline
-                            )
-
-                            viewModel.editCourse(edited)
-
-                        } else {
-                            val new = Course(
-                                courseName = name,
-                                timings = daySelectedList,
-                                links = linkList,
-                                count = count,
-                                deadline = deadline
-                            )
-                            viewModel.addCourse(new)
-                        }
-
-                        navigation.navigate("courses_list") {
-                            navigation.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
+                        var flag = false
+                        for(item in linkList) {
+                            if(item.contains("https://")) {
+                                flag = true
+                                break
                             }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
-                            launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
-                            restoreState = true
                         }
+
+                        if(!flag) {
+                            if (editMode) {
+                                val edited = Course(
+                                    id = id,
+                                    courseName = name,
+                                    timings = daySelectedList,
+                                    links = linkList,
+                                    count = count,
+                                    deadline = deadline
+                                )
+
+                                viewModel.editCourse(edited)
+
+                            } else {
+                                val new = Course(
+                                    courseName = name,
+                                    timings = daySelectedList,
+                                    links = linkList,
+                                    count = count,
+                                    deadline = deadline
+                                )
+
+                                viewModel.addCourse(new)
+
+                            }
+
+                            navigation.navigate("courses_list") {
+                                navigation.graph.startDestinationRoute?.let { route ->
+                                    popUpTo(route) {
+                                        saveState = true
+                                    }
+                                }
+                                // Avoid multiple copies of the same destination when
+                                // reselecting the same item
+                                launchSingleTop = true
+                                // Restore state when reselecting a previously selected item
+                                restoreState = true
+                            }
+                        }
+                        else {
+                            Toast.makeText(context, "Remove 'https://' from any recording links!", Toast.LENGTH_SHORT).show()
+                        }
+
                     }) {
 
                     Text(text = if (editMode) "Edit course" else "Add course")
@@ -548,8 +514,8 @@ fun addCourseScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            itemsIndexed(linkList) { i, _ ->
-                TextField(value = linkList[i],
+            itemsIndexed(linkList) { i, link ->
+                TextField(value = link,
                     onValueChange = {
                         linkList[i] = it
                     },
@@ -586,16 +552,6 @@ fun addCourseScreen(
     }
 }
 
-/*@Preview(showBackground = true)
-@Composable
-fun addCourseScreenPreview() {
-    addCourseScreen(Course(
-        courseName = "",
-        timings = mutableListOf(null, null, null, null, null, null, null),
-        links = mutableListOf(),
-        deadline = 0L
-    ))
-}*/
 
 @Composable
 fun AddCourseNavigation(navController: NavHostController, viewModel: CourseViewModel) {
@@ -604,7 +560,10 @@ fun AddCourseNavigation(navController: NavHostController, viewModel: CourseViewM
             coursesScreen(viewModel, navController)
         }
         composable(ADD_ROUTE,
-            arguments = listOf(navArgument("editMode") {
+            arguments = listOf(navArgument("course") {
+                type = NavType.StringType
+            },
+            navArgument("editMode") {
                 type = NavType.BoolType
             })) {
             val json = it.arguments?.getString("course")
@@ -619,12 +578,3 @@ fun AddCourseNavigation(navController: NavHostController, viewModel: CourseViewM
     }
 }
 
-
-
-
-/*
-@Preview(showBackground = true)
-@Composable
-fun profileScreenPreview() {
-    profileScreen()
-}*/

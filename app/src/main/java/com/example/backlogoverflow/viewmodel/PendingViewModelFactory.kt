@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.backlogoverflow.database.CourseDao
 
-class PendingViewModelFactory(
+class  PendingViewModelFactory(
     private val dataSource: CourseDao
 ) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
