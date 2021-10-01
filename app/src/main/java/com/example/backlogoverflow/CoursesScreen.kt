@@ -60,20 +60,6 @@ var onClick = {}
 @Composable
 fun mainCoursesScreen(viewModel: CourseViewModel) {
     val navController = rememberNavController()
-    val warning = rememberMaterialDialogState()
-    MaterialDialog(
-        dialogState = warning,
-        buttons = {
-            positiveButton("OK")
-        }
-    ) {
-        title("Note")
-        message("Remember to remove 'https://' from any recording links you input in the course screen," +
-                " as this causes problems with the Navigation URI." +
-                " I'm working on resolving this as soon as I can. Thank you :)\n\n-plaidbait91")
-    }
-
-    warning.show()
     AddCourseNavigation(navController = navController, viewModel = viewModel)
 }
 
@@ -81,6 +67,7 @@ fun mainCoursesScreen(viewModel: CourseViewModel) {
 @Composable
 fun coursesScreen(viewModel: CourseViewModel, navigation: NavHostController) {
     val list: List<Course> by viewModel.list.observeAsState(listOf())
+
 
     Scaffold(
         floatingActionButton = {
@@ -161,13 +148,14 @@ fun coursesScreen(viewModel: CourseViewModel, navigation: NavHostController) {
         else {
             emptyCoursesScreen()
         }
+
     }
 
 }
 
 @Composable
 fun courseRow(course: Course, navigation: NavHostController) {
-    var title = ""
+    var title = "No deadline"
 
     if(course.deadline != 0L) {
         val date = Date(course.deadline)
@@ -175,9 +163,6 @@ fun courseRow(course: Course, navigation: NavHostController) {
         title = formatter.format(date)
     }
 
-    else {
-        title = "No deadline"
-    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

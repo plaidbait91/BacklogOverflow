@@ -21,13 +21,13 @@ interface CourseDao {
     fun getCourse(id: Int): Course?
 
     @Query(value = "SELECT * FROM courses")
-    fun getAllCourses(): List<Course>?
+    fun getAllCourses(): LiveData<List<Course>>
 
     @Query(value = "SELECT * FROM courses WHERE recording_count > 0 ORDER BY deadline")
-    fun getPendingCoursesDeadlineSort(): List<Course>?
+    fun getPendingCoursesDeadlineSort(): LiveData<List<Course>>
 
-    @Query(value = "SELECT * FROM courses WHERE recording_count > 0 ORDER BY recording_count DESC")
-    fun getPendingCoursesRecordingSort(): List<Course>?
+    @Query(value = "SELECT * FROM courses WHERE recording_count > 0 ORDER BY recording_count")
+    fun getPendingCoursesRecordingSort(): LiveData<List<Course>>
 
     @Update
     fun updateCourse(course: Course)

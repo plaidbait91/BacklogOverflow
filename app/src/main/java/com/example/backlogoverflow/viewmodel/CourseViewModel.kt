@@ -1,5 +1,6 @@
 package com.example.backlogoverflow.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.backlogoverflow.database.Course
@@ -9,9 +10,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 class CourseViewModel(val database: CourseDao): ViewModel() {
-    private var _list = MutableLiveData<List<Course>>()
-    val list: MutableLiveData<List<Course>>
-    get() = _list
+    var list: LiveData<List<Course>> = database.getAllCourses()
 
     private var viewModelJob = Job()
 
@@ -22,26 +21,10 @@ class CourseViewModel(val database: CourseDao): ViewModel() {
 
     private val uiScope = CoroutineScope(Dispatchers.Main +  viewModelJob)
 
-    init {
-        loadCourses()
-    }
-
-    private fun loadCourses() {
-        uiScope.launch {
-            _list.value = query()
-        }
-    }
-
-    private suspend fun query(): List<Course>? {
-        return withContext(Dispatchers.IO) {
-            database.getAllCourses()
-        }
-    }
 
     fun addCourse(course: Course) {
         uiScope.launch {
             insert(course)
-            loadCourses()
         }
     }
 
@@ -54,7 +37,6 @@ class CourseViewModel(val database: CourseDao): ViewModel() {
     fun editCourse(course: Course) {
         uiScope.launch {
             update(course)
-            loadCourses()
         }
     }
 
@@ -68,7 +50,6 @@ class CourseViewModel(val database: CourseDao): ViewModel() {
         uiScope.launch {
             withContext(Dispatchers.IO) {
                 database.clear()
-                loadCourses()
             }
         }
     }
@@ -77,7 +58,6 @@ class CourseViewModel(val database: CourseDao): ViewModel() {
         uiScope.launch {
             withContext(Dispatchers.IO) {
                 database.deleteCourse(course)
-                loadCourses()
             }
         }
     }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,6 +37,12 @@ import com.example.backlogoverflow.database.CourseDatabase
 import com.example.backlogoverflow.ui.theme.BacklogOverflowTheme
 import com.example.backlogoverflow.viewmodel.CourseViewModel
 import com.example.backlogoverflow.viewmodel.CourseViewModelFactory
+import com.example.backlogoverflow.viewmodel.PendingViewModel
+import com.example.backlogoverflow.viewmodel.PendingViewModelFactory
+import com.vanpra.composematerialdialogs.MaterialDialog
+import com.vanpra.composematerialdialogs.message
+import com.vanpra.composematerialdialogs.rememberMaterialDialogState
+import com.vanpra.composematerialdialogs.title
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -48,20 +53,48 @@ class MainActivity : ComponentActivity() {
         val application = requireNotNull(this).application
 
         val dataSource = CourseDatabase.getInstance(application).courseDao
-        val viewModel: CourseViewModel by viewModels { CourseViewModelFactory(dataSource = dataSource) }
 
+        val courseViewModel: CourseViewModel by viewModels { CourseViewModelFactory(dataSource = dataSource) }
+        val pendingViewModel: PendingViewModel by viewModels { PendingViewModelFactory(dataSource = dataSource) }
+
+        val firstTime = getSharedPreferences("PREFERENCE", MODE_PRIVATE).getBoolean("firstrun", true)
         setContent {
             BacklogOverflowTheme {
                 // A surface container using the 'background' color from the theme
-                MainScreen(viewModel)
+                if(firstTime) {
+                    Dialog()
+                    getSharedPreferences("PREFERENCE", MODE_PRIVATE)
+                        .edit()
+                        .putBoolean("firstrun", false)
+                        .apply()
+                }
+                MainScreen(courseViewModel, pendingViewModel)
                 }
             }
         }
     }
 
+@Composable
+fun Dialog() {
+    val warning = rememberMaterialDialogState()
+    MaterialDialog(
+        dialogState = warning,
+        buttons = {
+            positiveButton("OK")
+        }
+    ) {
+        title("Note")
+        message("Remember to remove 'https://' from any recording links you input in the course screen," +
+                " as this causes problems with the Navigation URI." +
+                " I'm working on resolving this as soon as I can. Thank you :)\n\n-plaidbait91")
+    }
+
+    warning.show()
+}
+
 
 @Composable
-fun MainScreen(viewModel: CourseViewModel) {
+fun MainScreen(viewModel: CourseViewModel, viewModel2: PendingViewModel) {
     val scaffoldState = rememberScaffoldState(rememberDrawerState(DrawerValue.Closed))
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -77,7 +110,7 @@ fun MainScreen(viewModel: CourseViewModel) {
         },
     )
     {
-        Navigation(navController = navController, viewModel)
+        Navigation(navController, viewModel, viewModel2)
     }
     // }
 }
@@ -237,13 +270,13 @@ fun MainScreenPreview() {
 }*/
 
 @Composable
-fun Navigation(navController: NavHostController, viewModel: CourseViewModel) {
+fun Navigation(navController: NavHostController, courseViewModel: CourseViewModel, pendingViewModel: PendingViewModel) {
     NavHost(navController, startDestination = NavDrawerItem.Courses.nav) {
         composable(NavDrawerItem.Courses.nav) {
-            mainCoursesScreen(viewModel)
+            mainCoursesScreen(courseViewModel)
         }
         composable(NavDrawerItem.Pending.nav) {
-            pendingScreen()
+            mainPendingScreen(pendingViewModel)
         }
         composable(NavDrawerItem.Profile.nav) {
             profileScreen()
