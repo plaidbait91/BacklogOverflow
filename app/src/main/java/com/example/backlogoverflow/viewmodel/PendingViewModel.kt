@@ -12,6 +12,8 @@ class PendingViewModel(val database: CourseDao): ViewModel() {
     var selectedIndex = MutableLiveData(0)
 
     private var viewModelJob = Job()
+    private val uiScope = CoroutineScope(Dispatchers.Main +  viewModelJob)
+
 
     override fun onCleared() {
         super.onCleared()
@@ -26,6 +28,15 @@ class PendingViewModel(val database: CourseDao): ViewModel() {
     fun deadlineSort() {
         list = database.getPendingCoursesDeadlineSort()
         selectedIndex.value = 1
+    }
+
+    fun editCourse(course: Course) {
+        uiScope.launch {
+            withContext(Dispatchers.IO) {
+                database.updateCourse(course)
+            }
+
+        }
     }
 
 

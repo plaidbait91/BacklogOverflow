@@ -240,12 +240,6 @@ fun addCourseScreen(
     navigation: NavHostController,
     editMode: Boolean) {
 
-   val context = LocalContext.current
-
-   val id = remember {
-       course.id
-   }
-
    val displayName = course.courseName.replace('|', '/')
 
    var name by rememberSaveable { mutableStateOf(displayName) }
@@ -268,8 +262,8 @@ fun addCourseScreen(
        mutableStateListOf(*course.links.toTypedArray())
    }
 
-    for(i in 1..count) {
-        linkList[i - 1] = linkList[i - 1].replace('|', '/')
+    for(i in linkList.indices) {
+        linkList[i] = linkList[i].replace('|', '/')
     }
 
    val daysList = DayOfWeek.values()
@@ -309,7 +303,7 @@ fun addCourseScreen(
 
                         if (editMode) {
                             val edited = Course(
-                                id = id,
+                                id = course.id,
                                 courseName = name,
                                 timings = daySelectedList,
                                 links = linkList,
@@ -341,8 +335,6 @@ fun addCourseScreen(
                             // Avoid multiple copies of the same destination when
                             // reselecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
-                            restoreState = true
                         }
 
 
@@ -355,7 +347,7 @@ fun addCourseScreen(
                 if(editMode) {
                     Button(onClick = {
                         val delete = Course(
-                            id = id,
+                            id = course.id,
                             courseName = name,
                             timings = daySelectedList,
                             links = linkList,
@@ -373,8 +365,6 @@ fun addCourseScreen(
                             // Avoid multiple copies of the same destination when
                             // reselecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
-                            restoreState = true
                         }
                     }) {
                         Text(text = "Delete course")

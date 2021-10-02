@@ -10,21 +10,21 @@ import java.util.*
 @Entity(tableName = "courses")
 data class Course(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    var id: Int = 0,
 
     @ColumnInfo(name = "course_name")
-    val courseName: String,
+    var courseName: String,
 
     @ColumnInfo(name = "lecture_timings")
-    val timings: MutableList<String?>,
+    var timings: MutableList<String?>,
 
     @ColumnInfo(name = "lecture_links")
-    val links: MutableList<String>,
+    var links: MutableList<String>,
 
     @ColumnInfo(name = "recording_count")
-    val count: Int = 0,
+    var count: Int = 0,
 
     @ColumnInfo(name = "deadline")
-    val deadline: Long
+    var deadline: Long
 
 )

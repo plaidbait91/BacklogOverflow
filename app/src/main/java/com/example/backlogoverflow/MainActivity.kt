@@ -157,8 +157,7 @@ fun Drawer(scope: CoroutineScope, scaffoldState: ScaffoldState, navController: N
                     // Avoid multiple copies of the same destination when
                     // reselecting the same item
                     launchSingleTop = true
-                    // Restore state when reselecting a previously selected item
-                    restoreState = true
+
                 }
                 // Close drawer
                 scope.launch {
