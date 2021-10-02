@@ -57,40 +57,13 @@ class MainActivity : ComponentActivity() {
         val courseViewModel: CourseViewModel by viewModels { CourseViewModelFactory(dataSource = dataSource) }
         val pendingViewModel: PendingViewModel by viewModels { PendingViewModelFactory(dataSource = dataSource) }
 
-        val firstTime = getSharedPreferences("PREFERENCE", MODE_PRIVATE).getBoolean("firstrun", true)
         setContent {
             BacklogOverflowTheme {
-                // A surface container using the 'background' color from the theme
-                if(firstTime) {
-                    Dialog()
-                    getSharedPreferences("PREFERENCE", MODE_PRIVATE)
-                        .edit()
-                        .putBoolean("firstrun", false)
-                        .apply()
-                }
                 MainScreen(courseViewModel, pendingViewModel)
                 }
             }
         }
     }
-
-@Composable
-fun Dialog() {
-    val warning = rememberMaterialDialogState()
-    MaterialDialog(
-        dialogState = warning,
-        buttons = {
-            positiveButton("OK")
-        }
-    ) {
-        title("Note")
-        message("Remember to remove 'https://' from any recording links you input in the course screen," +
-                " as this causes problems with the Navigation URI." +
-                " I'm working on resolving this as soon as I can. Thank you :)\n\n-plaidbait91")
-    }
-
-    warning.show()
-}
 
 
 @Composable

@@ -191,7 +191,7 @@ fun courseRow(course: Course, navigation: NavHostController) {
             }
     ) {
         Text(
-            text = course.courseName,
+            text = course.courseName.replace('|', '/'),
             fontSize = 24.sp,
             color = Color.Black
         )
@@ -245,7 +245,11 @@ fun addCourseScreen(
    val id = remember {
        course.id
    }
-   var name by rememberSaveable { mutableStateOf(course.courseName) }
+
+   val displayName = course.courseName.replace('|', '/')
+
+   var name by rememberSaveable { mutableStateOf(displayName) }
+
 
    var count by rememberSaveable {
        mutableStateOf(course.count)
@@ -263,6 +267,10 @@ fun addCourseScreen(
    val linkList = remember {
        mutableStateListOf(*course.links.toTypedArray())
    }
+
+    for(i in 1..count) {
+        linkList[i - 1] = linkList[i - 1].replace('|', '/')
+    }
 
    val daysList = DayOfWeek.values()
    var timingTime: LocalTime by rememberSaveable { mutableStateOf(LocalTime.now())} 
@@ -293,56 +301,50 @@ fun addCourseScreen(
                 Button(
                     onClick = {
 
-                        var flag = false
-                        for(item in linkList) {
-                            if(item.contains("https://")) {
-                                flag = true
-                                break
-                            }
+                        for(i in linkList.indices) {
+                            linkList[i] = linkList[i].replace('/', '|')
                         }
 
-                        if(!flag) {
-                            if (editMode) {
-                                val edited = Course(
-                                    id = id,
-                                    courseName = name,
-                                    timings = daySelectedList,
-                                    links = linkList,
-                                    count = count,
-                                    deadline = deadline
-                                )
+                        name = name.replace('/', '|')
 
-                                viewModel.editCourse(edited)
+                        if (editMode) {
+                            val edited = Course(
+                                id = id,
+                                courseName = name,
+                                timings = daySelectedList,
+                                links = linkList,
+                                count = count,
+                                deadline = deadline
+                            )
 
-                            } else {
-                                val new = Course(
-                                    courseName = name,
-                                    timings = daySelectedList,
-                                    links = linkList,
-                                    count = count,
-                                    deadline = deadline
-                                )
+                            viewModel.editCourse(edited)
 
-                                viewModel.addCourse(new)
+                        } else {
+                            val new = Course(
+                                courseName = name,
+                                timings = daySelectedList,
+                                links = linkList,
+                                count = count,
+                                deadline = deadline
+                            )
 
-                            }
+                            viewModel.addCourse(new)
 
-                            navigation.navigate("courses_list") {
-                                navigation.graph.startDestinationRoute?.let { route ->
-                                    popUpTo(route) {
-                                        saveState = true
-                                    }
+                        }
+
+                        navigation.navigate("courses_list") {
+                            navigation.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
                                 }
-                                // Avoid multiple copies of the same destination when
-                                // reselecting the same item
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
                             }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
                         }
-                        else {
-                            Toast.makeText(context, "Remove 'https://' from any recording links!", Toast.LENGTH_SHORT).show()
-                        }
+
 
                     }) {
 

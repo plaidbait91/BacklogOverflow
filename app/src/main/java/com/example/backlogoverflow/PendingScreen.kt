@@ -38,37 +38,16 @@ fun mainPendingScreen(pendingViewModel: PendingViewModel) {
     AddPendingNavigation(navController, pendingViewModel)
 }
 
-@Composable
-fun AddPendingNavigation(navController: NavHostController, pendingViewModel: PendingViewModel) {
-    NavHost(navController, startDestination = LIST_ROUTE) {
-        composable(LIST_ROUTE) {
-            pendingScreen(pendingViewModel, navController)
-        }
-        composable(
-            EDIT_ROUTE,
-            arguments = listOf(navArgument("course") {
-                type = NavType.StringType
-            })) {
-            val json = it.arguments?.getString("course")
-            val course = jsonAdapter.fromJson(json)
-
-            if (course != null) {
-                editPending(course, pendingViewModel, navController)
-            }
-        }
-
-    }
-}
-
-@Composable
-fun editPending(course: Course, pendingViewModel: PendingViewModel, navController: NavHostController) {
-
-}
 
 @Composable
 fun pendingRow(course: Course, navigation: NavHostController) {
-    val date = Date(course.deadline)
-    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    var title = "No deadline"
+
+    if(course.deadline != 0L) {
+        val date = Date(course.deadline)
+        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        title = formatter.format(date)
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -92,7 +71,7 @@ fun pendingRow(course: Course, navigation: NavHostController) {
             )
 
             Text(
-                text = formatter.format(date),
+                text = title,
                 fontSize = 14.sp,
                 color = Color.Gray
             )
@@ -125,6 +104,11 @@ fun pendingScreen(viewModel: PendingViewModel, navController: NavHostController)
 }
 
 @Composable
+fun editPending(course: Course, pendingViewModel: PendingViewModel, navController: NavHostController) {
+
+}
+
+@Composable
 fun emptyPendingScreen() {
     Column(
         modifier = Modifier
@@ -143,15 +127,24 @@ fun emptyPendingScreen() {
 }
 
 
-/*
-@Preview(showBackground = true)
 @Composable
-fun pendingScreenReview() {
-    mainPendingScreen()
-}
+fun AddPendingNavigation(navController: NavHostController, pendingViewModel: PendingViewModel) {
+    NavHost(navController, startDestination = LIST_ROUTE) {
+        composable(LIST_ROUTE) {
+            pendingScreen(pendingViewModel, navController)
+        }
+        composable(
+            EDIT_ROUTE,
+            arguments = listOf(navArgument("course") {
+                type = NavType.StringType
+            })) {
+            val json = it.arguments?.getString("course")
+            val course = jsonAdapter.fromJson(json)
 
-@Preview(showBackground = true)
-@Composable
-fun pendingRowReview() {
-    pendingRow()
-}*/
+            if (course != null) {
+                editPending(course, pendingViewModel, navController)
+            }
+        }
+
+    }
+}
