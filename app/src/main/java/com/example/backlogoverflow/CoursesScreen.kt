@@ -55,7 +55,7 @@ import java.util.Collections.addAll
 val moshi = Moshi.Builder().build()
 val jsonAdapter = moshi.adapter(Course::class.java).lenient()
 
-val ADD_ROUTE = "add_or_edit_course/course={course}/{editMode}"
+const val ADD_ROUTE = "add_or_edit_course/course={course}/{editMode}"
 var onClick = {}
 @Composable
 fun mainCoursesScreen(viewModel: CourseViewModel) {
@@ -351,7 +351,7 @@ fun addCourseScreen(
                     Text(text = if (editMode) "Edit course" else "Add course")
 
                 }
-                
+
                 if(editMode) {
                     Button(onClick = {
                         val delete = Course(
