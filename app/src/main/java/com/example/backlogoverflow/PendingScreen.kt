@@ -1,5 +1,6 @@
 package com.example.backlogoverflow
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -205,6 +206,7 @@ fun pendingScreen(viewModel: PendingViewModel, navController: NavHostController)
 fun editPending(course: Course, pendingViewModel: PendingViewModel, navController: NavHostController) {
 
     val context = LocalContext.current
+    val prefs = context.getSharedPreferences("PREFERENCES", Context.MODE_PRIVATE)
 
     var count by rememberSaveable {
         mutableStateOf(course.count)
@@ -342,6 +344,12 @@ fun editPending(course: Course, pendingViewModel: PendingViewModel, navControlle
                         onClick = {
                             count--
                             linkList.removeAt(i)
+
+                            val total = prefs.getInt("count", 0) + 1
+                            prefs.edit()
+                                .putInt("count", total)
+                                .apply()
+
                         }) {
                         Text(text = "Done")
                     }

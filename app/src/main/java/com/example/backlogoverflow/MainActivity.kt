@@ -1,9 +1,12 @@
 package com.example.backlogoverflow
 
+import android.icu.util.TimeUnit
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,20 +36,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.backlogoverflow.database.CourseDatabase
 import com.example.backlogoverflow.ui.theme.BacklogOverflowTheme
 import com.example.backlogoverflow.viewmodel.CourseViewModel
 import com.example.backlogoverflow.viewmodel.CourseViewModelFactory
 import com.example.backlogoverflow.viewmodel.PendingViewModel
 import com.example.backlogoverflow.viewmodel.PendingViewModelFactory
-import com.vanpra.composematerialdialogs.MaterialDialog
-import com.vanpra.composematerialdialogs.message
-import com.vanpra.composematerialdialogs.rememberMaterialDialogState
-import com.vanpra.composematerialdialogs.title
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -56,6 +60,17 @@ class MainActivity : ComponentActivity() {
 
         val courseViewModel: CourseViewModel by viewModels { CourseViewModelFactory(dataSource = dataSource) }
         val pendingViewModel: PendingViewModel by viewModels { PendingViewModelFactory(dataSource = dataSource) }
+
+        val countRefresher =
+            PeriodicWorkRequestBuilder<ResetCounterWorker>(7, java.util.concurrent.TimeUnit.DAYS)
+            .build()
+
+        WorkManager
+            .getInstance(this)
+            .enqueueUniquePeriodicWork(
+                "countRefresher",
+            ExistingPeriodicWorkPolicy.KEEP,
+            countRefresher)
 
         setContent {
             BacklogOverflowTheme {
