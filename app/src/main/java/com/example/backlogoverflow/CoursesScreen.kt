@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -161,6 +162,14 @@ fun courseRow(course: Course, navigation: NavHostController) {
         title = formatter.format(date)
     }
 
+    val week = mutableListOf<String>()
+
+    for(i in 0..6) {
+        week.add(DayOfWeek.values()[i].toString().substring(0..2))
+    }
+
+    val lecs = course.timings
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -188,16 +197,32 @@ fun courseRow(course: Course, navigation: NavHostController) {
                 }
             }
     ) {
-        Text(
-            text = course.courseName.replace('|', '/'),
-            fontSize = 24.sp,
-            //color = Color.Black
-        )
 
-        Text(
-            text = title,
-            color = Color.Gray
-        )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = course.courseName.replace('|', '/'),
+                fontSize = 24.sp,
+                //color = Color.Black
+            )
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                itemsIndexed(lecs) { i, item->
+                    if(item != null)
+                    Text(
+                        text = week[i] + " " + item + ",",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+
+
+
+        }
 
     }
     Column(
@@ -383,7 +408,8 @@ fun addCourseScreen(
             ) {
                 itemsIndexed(daysList) { i, day ->
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
                             checked = daySelectedList[i] != null,
@@ -395,7 +421,7 @@ fun addCourseScreen(
                                             timingTime.atDate(LocalDate.of(1990, 1, 1))
                                                 .atZone(ZoneId.systemDefault()).toInstant()
                                         val time = Date.from(instant)
-                                        val format = SimpleDateFormat("HH:mm:ss")
+                                        val format = SimpleDateFormat("HH:mm")
                                         daySelectedList[i] = format.format(time)
 
                                     }
@@ -411,7 +437,20 @@ fun addCourseScreen(
 
                         Text(
                             text = day.name.lowercase().capitalize() + " " + (if(daySelectedList[i] != null) daySelectedList[i] else ""),
-                            fontSize = 18.sp)
+                            fontSize = 18.sp,
+                        modifier = Modifier
+                            .clickable {
+                                dialogState.show()
+                                onClick = {
+                                    val instant: Instant =
+                                        timingTime.atDate(LocalDate.of(1990, 1, 1))
+                                            .atZone(ZoneId.systemDefault()).toInstant()
+                                    val time = Date.from(instant)
+                                    val format = SimpleDateFormat("HH:mm")
+                                    daySelectedList[i] = format.format(time)
+
+                                }
+                            })
 
                         MaterialDialog(
                             dialogState = dialogState,
@@ -433,7 +472,7 @@ fun addCourseScreen(
                 }
             }
 
-        val format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+        val format = SimpleDateFormat("dd/MM/yyyy HH:mm")
         Text(text = "Current deadline: " + (if(deadline == 0L) "Not set" else format.format(Date(deadline))),
             fontWeight = FontWeight.Bold
         )
