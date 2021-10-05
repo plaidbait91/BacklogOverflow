@@ -2,12 +2,11 @@ package com.example.backlogoverflow
 
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Switch
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,19 +23,52 @@ fun profileScreen() {
 
     val context = LocalContext.current
 
-    val record = context.getSharedPreferences("PREFERENCES", Context.MODE_PRIVATE).getInt("count", 0)
+    val record = context
+        .getSharedPreferences("PREFERENCES", Context.MODE_PRIVATE)
+        .getInt("count", 0)
+    val prefs = context
+        .getSharedPreferences("PREFERENCES", Context.MODE_PRIVATE)
 
+    val dark = prefs.getBoolean("dark_theme", false)
+
+    var checked by remember { mutableStateOf(dark) }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.white))
-            .padding(16.dp)
+            //.background(colorResource(id = R.color.white))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Recordings watched this week: $record",
-            color = Color.Black,
-            fontSize = 24.sp
+            //color = Color.Black,
+            fontSize = 20.sp
         )
+
+        Row(modifier = Modifier
+            .fillMaxWidth(0.8f),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            
+            Text(text = "Enable Dark Theme",
+            fontSize = 20.sp)
+
+            Switch(checked = checked,
+                onCheckedChange = {
+                    prefs.edit()
+                        .putBoolean("dark_theme", it)
+                        .apply()
+
+                    checked = it
+
+                    if(it) profileViewModel.darkTheme()
+                    else profileViewModel.lightTheme()
+
+                })
+        }
+
+
     }
 }
 

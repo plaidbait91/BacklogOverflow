@@ -88,7 +88,8 @@ fun pendingRow(course: Course, navigation: NavHostController) {
 
         Text(text = course.courseName,
         fontSize = 24.sp,
-        color = Color.Black)
+        //color = Color.Black
+        )
 
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -151,7 +152,7 @@ fun pendingScreen(viewModel: PendingViewModel, navController: NavHostController)
                    )
 
                    Icon(
-                       painter = painterResource(id = R.drawable.outline_arrow_drop_down_black_18),
+                       painter = painterResource(id = R.drawable.outline_arrow_drop_down_24),
                        contentDescription = "drop_down")
                }
 
@@ -183,7 +184,7 @@ fun pendingScreen(viewModel: PendingViewModel, navController: NavHostController)
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(colorResource(id = R.color.black))) {}
+                .background(colorResource(id = R.color.gray))) {}
 
         if(list.isNotEmpty()) {
             LazyColumn {
@@ -210,6 +211,10 @@ fun editPending(course: Course, pendingViewModel: PendingViewModel, navControlle
 
     var count by rememberSaveable {
         mutableStateOf(course.count)
+    }
+
+    var watched by rememberSaveable {
+        mutableStateOf(0)
     }
 
     val displayName = course.courseName.replace('|', '/')
@@ -261,6 +266,11 @@ fun editPending(course: Course, pendingViewModel: PendingViewModel, navControlle
 
                     course.count = count
                     course.links = linkList
+
+                    val total = prefs.getInt("count", 0) + watched
+                    prefs.edit()
+                        .putInt("count", total)
+                        .apply()
 
                     pendingViewModel.editCourse(course)
 
@@ -343,12 +353,8 @@ fun editPending(course: Course, pendingViewModel: PendingViewModel, navControlle
                         .fillMaxHeight(),
                         onClick = {
                             count--
+                            watched++
                             linkList.removeAt(i)
-
-                            val total = prefs.getInt("count", 0) + 1
-                            prefs.edit()
-                                .putInt("count", total)
-                                .apply()
 
                         }) {
                         Text(text = "Done")
@@ -370,7 +376,7 @@ fun emptyPendingScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.white))
+            //.background(colorResource(id = R.color.white))
             .wrapContentSize(Alignment.Center)
     ) {
         Text(

@@ -102,7 +102,6 @@ fun coursesScreen(viewModel: CourseViewModel, navigation: NavHostController) {
                 }
 
                 FloatingActionButton(
-                    backgroundColor = colorResource(id = R.color.purple_700),
                     onClick = {
                         val course = Course(
                             courseName = "",
@@ -129,8 +128,7 @@ fun coursesScreen(viewModel: CourseViewModel, navigation: NavHostController) {
                 FloatingActionButton(onClick = {
                     if(list.isNotEmpty()) delete.show()
                     else empty.show()
-                },
-                    backgroundColor = colorResource(id = R.color.purple_500)) {
+                }) {
                     Icon(Icons.Filled.Delete, "")
                 }
             }
@@ -170,7 +168,7 @@ fun courseRow(course: Course, navigation: NavHostController) {
             .fillMaxWidth()
             .height(120.dp)
             .padding(15.dp)
-            .background(Color.White)
+            //.background(Color.White)
             .clickable {
                 val json = jsonAdapter.toJson(course)
 
@@ -193,7 +191,7 @@ fun courseRow(course: Course, navigation: NavHostController) {
         Text(
             text = course.courseName.replace('|', '/'),
             fontSize = 24.sp,
-            color = Color.Black
+            //color = Color.Black
         )
 
         Text(
@@ -214,7 +212,7 @@ fun emptyCoursesScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.white))
+            //.background(colorResource(id = R.color.white))
             .wrapContentSize(Alignment.Center)
     ) {
         Text(
@@ -275,7 +273,7 @@ fun addCourseScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.white))
+            //.background(colorResource(id = R.color.white))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -434,18 +432,6 @@ fun addCourseScreen(
 
                 }
             }
-
-        /*LazyColumn {
-            items(daySelectedList) {
-                if (it != null) {
-                    Text(text = it)
-                }
-
-                else {
-                    Text(text = "null")
-                }
-            }
-        }*/
 
         val format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
         Text(text = "Current deadline: " + (if(deadline == 0L) "Not set" else format.format(Date(deadline))),

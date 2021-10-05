@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,13 +42,11 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.backlogoverflow.database.CourseDatabase
 import com.example.backlogoverflow.ui.theme.BacklogOverflowTheme
-import com.example.backlogoverflow.viewmodel.CourseViewModel
-import com.example.backlogoverflow.viewmodel.CourseViewModelFactory
-import com.example.backlogoverflow.viewmodel.PendingViewModel
-import com.example.backlogoverflow.viewmodel.PendingViewModelFactory
+import com.example.backlogoverflow.viewmodel.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+val profileViewModel = ProfileViewModel()
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
@@ -72,8 +71,12 @@ class MainActivity : ComponentActivity() {
             ExistingPeriodicWorkPolicy.KEEP,
             countRefresher)
 
+        val dark = getSharedPreferences("PREFERENCES", MODE_PRIVATE)
+            .getBoolean("dark_theme", false)
+
         setContent {
-            BacklogOverflowTheme {
+            val darkTheme: Boolean by profileViewModel.darkTheme.observeAsState(dark)
+            BacklogOverflowTheme(darkTheme = darkTheme) {
                 MainScreen(courseViewModel, pendingViewModel)
                 }
             }
@@ -92,7 +95,7 @@ fun MainScreen(viewModel: CourseViewModel, viewModel2: PendingViewModel) {
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = { TopBar(scope = scope, scaffoldState = scaffoldState, title) },
-        drawerBackgroundColor = colorResource(id = R.color.purple_700),
+        drawerBackgroundColor = MaterialTheme.colors.background,
         drawerContent = {
             Drawer(scope = scope, scaffoldState = scaffoldState, navController = navController)
         },
@@ -116,8 +119,8 @@ fun TopBar(scope: CoroutineScope, scaffoldState: ScaffoldState, title: String) {
                 Icon(Icons.Filled.Menu, "")
             }
         },
-        backgroundColor = colorResource(id = R.color.purple_700),
-        contentColor = Color.White
+        backgroundColor = MaterialTheme.colors.primary,
+        contentColor = MaterialTheme.colors.onPrimary
     )
 }
 
@@ -130,17 +133,17 @@ fun Drawer(scope: CoroutineScope, scaffoldState: ScaffoldState, navController: N
     )
     Column(
         modifier = Modifier
-            .background(colorResource(id = R.color.white))
+            //.background(colorResource(id = R.color.white))
     ) {
         // Header
         Column(modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(0.2f)
-            .background(colorResource(id = R.color.purple_500)),
+            .background(MaterialTheme.colors.primary),
             verticalArrangement = Arrangement.Center) {
             Text(
                 text = "Menu",
-                color = Color.White,
+                //color = Color.White,
                 textAlign = TextAlign.Center,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
@@ -183,7 +186,7 @@ fun Drawer(scope: CoroutineScope, scaffoldState: ScaffoldState, navController: N
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = "Ghot Lives Matter",
-            color = Color.Black,
+            //color = Color.Black,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(12.dp)
@@ -207,7 +210,7 @@ fun DrawerItem(item: NavDrawerItem, selected: Boolean, onItemClick: (NavDrawerIt
         Image(
             painter = painterResource(id = item.image),
             contentDescription = item.title,
-            colorFilter = ColorFilter.tint(Color.Black),
+            colorFilter = ColorFilter.tint(MaterialTheme.colors.onBackground),
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .height(35.dp)
@@ -217,7 +220,7 @@ fun DrawerItem(item: NavDrawerItem, selected: Boolean, onItemClick: (NavDrawerIt
         Text(
             text = item.title,
             fontSize = 18.sp,
-            color = Color.Black
+            color = MaterialTheme.colors.onBackground
         )
     }
     Column(
