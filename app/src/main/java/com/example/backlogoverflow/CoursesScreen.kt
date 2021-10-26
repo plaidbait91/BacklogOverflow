@@ -367,28 +367,45 @@ fun addCourseScreen(
 
                     }
 
+                    val confirm = rememberMaterialDialogState()
+
+                    MaterialDialog(
+                        dialogState = confirm,
+                    buttons = {
+                        positiveButton("OK",
+                            onClick = {
+                                val delete = Course(
+                                    id = course.id,
+                                    courseName = name,
+                                    timings = daySelectedList,
+                                    links = linkList,
+                                    count = count,
+                                    deadline = deadline
+                                )
+
+                                viewModel.deleteCourse(delete)
+                                navigation.navigate("courses_list") {
+                                    navigation.graph.startDestinationRoute?.let { route ->
+                                        popUpTo(route) {
+                                            saveState = true
+                                        }
+                                    }
+                                    // Avoid multiple copies of the same destination when
+                                    // reselecting the same item
+                                    launchSingleTop = true
+                                }
+                            })
+                        negativeButton("Cancel")
+                    }) {
+                        title("Delete course?")
+                        message("This action will remove this " +
+                                "course from your course list and " +
+                                "pending section.")
+                    }
+
                     if (editMode) {
                         Button(onClick = {
-                            val delete = Course(
-                                id = course.id,
-                                courseName = name,
-                                timings = daySelectedList,
-                                links = linkList,
-                                count = count,
-                                deadline = deadline
-                            )
-
-                            viewModel.deleteCourse(delete)
-                            navigation.navigate("courses_list") {
-                                navigation.graph.startDestinationRoute?.let { route ->
-                                    popUpTo(route) {
-                                        saveState = true
-                                    }
-                                }
-                                // Avoid multiple copies of the same destination when
-                                // reselecting the same item
-                                launchSingleTop = true
-                            }
+                            confirm.show()
                         }) {
                             Text(text = "Delete course")
                         }
