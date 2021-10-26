@@ -295,37 +295,81 @@ fun addCourseScreen(
    val dialogState2 = rememberMaterialDialogState() 
 
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             //.background(colorResource(id = R.color.white))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-
-        Row (
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Course Name") },
-            )
-            
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        item {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    onClick = {
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Course Name") },
+                )
 
-                        for(i in linkList.indices) {
-                            linkList[i] = linkList[i].replace('/', '|')
-                        }
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = {
 
-                        name = name.replace('/', '|')
+                            for (i in linkList.indices) {
+                                linkList[i] = linkList[i].replace('/', '|')
+                            }
 
-                        if (editMode) {
-                            val edited = Course(
+                            name = name.replace('/', '|')
+
+                            if (editMode) {
+                                val edited = Course(
+                                    id = course.id,
+                                    courseName = name,
+                                    timings = daySelectedList,
+                                    links = linkList,
+                                    count = count,
+                                    deadline = deadline
+                                )
+
+                                viewModel.editCourse(edited)
+
+                            } else {
+                                val new = Course(
+                                    courseName = name,
+                                    timings = daySelectedList,
+                                    links = linkList,
+                                    count = count,
+                                    deadline = deadline
+                                )
+
+                                viewModel.addCourse(new)
+
+                            }
+
+                            navigation.navigate("courses_list") {
+                                navigation.graph.startDestinationRoute?.let { route ->
+                                    popUpTo(route) {
+                                        saveState = true
+                                    }
+                                }
+                                // Avoid multiple copies of the same destination when
+                                // reselecting the same item
+                                launchSingleTop = true
+                            }
+
+
+                        }) {
+
+                        Text(text = if (editMode) "Edit course" else "Add course")
+
+                    }
+
+                    if (editMode) {
+                        Button(onClick = {
+                            val delete = Course(
                                 id = course.id,
                                 courseName = name,
                                 timings = daySelectedList,
@@ -334,134 +378,88 @@ fun addCourseScreen(
                                 deadline = deadline
                             )
 
-                            viewModel.editCourse(edited)
-
-                        } else {
-                            val new = Course(
-                                courseName = name,
-                                timings = daySelectedList,
-                                links = linkList,
-                                count = count,
-                                deadline = deadline
-                            )
-
-                            viewModel.addCourse(new)
-
-                        }
-
-                        navigation.navigate("courses_list") {
-                            navigation.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
-                            }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
-                            launchSingleTop = true
-                        }
-
-
-                    }) {
-
-                    Text(text = if (editMode) "Edit course" else "Add course")
-
-                }
-
-                if(editMode) {
-                    Button(onClick = {
-                        val delete = Course(
-                            id = course.id,
-                            courseName = name,
-                            timings = daySelectedList,
-                            links = linkList,
-                            count = count,
-                            deadline = deadline
-                        )
-
-                        viewModel.deleteCourse(delete)
-                        navigation.navigate("courses_list") {
-                            navigation.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
-                            }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
-                            launchSingleTop = true
-                        }
-                    }) {
-                        Text(text = "Delete course")
-                    }
-                }
-                
-            }
-
-            
-        }
-
-        Text(text = "Lecture Timings",
-        fontWeight = FontWeight.Bold
-        )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                itemsIndexed(daysList) { i, day ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = daySelectedList[i] != null,
-                            onCheckedChange = { checked ->
-                                if(checked) {
-                                    dialogState.show()
-                                    onClick = {
-                                        val instant: Instant =
-                                            timingTime.atDate(LocalDate.of(1990, 1, 1))
-                                                .atZone(ZoneId.systemDefault()).toInstant()
-                                        val time = Date.from(instant)
-                                        val format = SimpleDateFormat("HH:mm")
-                                        daySelectedList[i] = format.format(time)
-
+                            viewModel.deleteCourse(delete)
+                            navigation.navigate("courses_list") {
+                                navigation.graph.startDestinationRoute?.let { route ->
+                                    popUpTo(route) {
+                                        saveState = true
                                     }
                                 }
-
-                                else {
-                                    daySelectedList[i] = null
-                                }
-
-
+                                // Avoid multiple copies of the same destination when
+                                // reselecting the same item
+                                launchSingleTop = true
                             }
-                        )
+                        }) {
+                            Text(text = "Delete course")
+                        }
+                    }
 
-                        Text(
-                            text = day.name.lowercase().capitalize() + " " + (if(daySelectedList[i] != null) daySelectedList[i] else ""),
-                            fontSize = 18.sp,
-                        modifier = Modifier
-                            .clickable {
-                                dialogState.show()
-                                onClick = {
-                                    val instant: Instant =
-                                        timingTime.atDate(LocalDate.of(1990, 1, 1))
-                                            .atZone(ZoneId.systemDefault()).toInstant()
-                                    val time = Date.from(instant)
-                                    val format = SimpleDateFormat("HH:mm")
-                                    daySelectedList[i] = format.format(time)
+                }
 
-                                }
-                            })
 
-                        MaterialDialog(
-                            dialogState = dialogState,
-                            buttons = {
-                                positiveButton("Ok", onClick = onClick)
-                                negativeButton("Cancel")
+            }
+        }
+
+        item {
+            Text(
+                text = "Lecture Timings",
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        itemsIndexed(daysList) { i, day ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = daySelectedList[i] != null,
+                    onCheckedChange = { checked ->
+                        if(checked) {
+                            dialogState.show()
+                            onClick = {
+                                val instant: Instant =
+                                    timingTime.atDate(LocalDate.of(1990, 1, 1))
+                                        .atZone(ZoneId.systemDefault()).toInstant()
+                                val time = Date.from(instant)
+                                val format = SimpleDateFormat("HH:mm")
+                                daySelectedList[i] = format.format(time)
                             }
-                        ) {
+                        }
+
+                        else {
+                            daySelectedList[i] = null
+                        }
 
 
-                            timepicker{
+                    }
+                )
+                 Text(
+                     text = day.name.lowercase().capitalize() + " " + (if(daySelectedList[i] != null) daySelectedList[i] else ""),
+                     fontSize = 18.sp,
+                     modifier = Modifier
+                         .clickable {
+                             dialogState.show()
+                             onClick = {
+                                 val instant: Instant =
+                                     timingTime.atDate(LocalDate.of(1990, 1, 1))
+                                         .atZone(ZoneId.systemDefault()).toInstant()
+                                 val time = Date.from(instant)
+                                 val format = SimpleDateFormat("HH:mm")
+                                 daySelectedList[i] = format.format(time)
+
+                             }
+                         })
+
+                MaterialDialog(
+                    dialogState = dialogState,
+                    buttons = {
+                        positiveButton("Ok", onClick = onClick)
+                        negativeButton("Cancel")
+                    }
+                ) {
+
+                    timepicker{
                                 timingTime = it
                             }
 
@@ -470,81 +468,95 @@ fun addCourseScreen(
                     }
 
                 }
-            }
 
         val format = SimpleDateFormat("dd/MM/yyyy HH:mm")
-        Text(text = "Current deadline: " + (if(deadline == 0L) "Not set" else format.format(Date(deadline))),
-            fontWeight = FontWeight.Bold
-        )
 
-        Button(onClick = {
-            dialogState2.show()
-        }) {
-            Text(text = "Change/set deadline")
+        item {
+            Text(
+                text = "Current deadline: " + (if (deadline == 0L) "Not set" else format.format(
+                    Date(
+                        deadline
+                    )
+                )),
+                fontWeight = FontWeight.Bold
+            )
         }
 
-        Text(text = "Number of recordings to watch",
-        fontWeight = FontWeight.Bold
-        )
+        item {
+            Button(onClick = {
+                dialogState2.show()
+            }) {
+                Text(text = "Change/set deadline")
+            }
+        }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(
-                onClick = {
-                if(count > 0) {
-                    count--
-                    linkList.removeLast()
+        item {
+            Text(
+                text = "Number of recordings to watch",
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        item {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        if (count > 0) {
+                            count--
+                            linkList.removeLast()
+                        }
+                    }) {
+                    Text(text = "-")
                 }
-                }) {
-                Text(text = "-")
-            }
 
-            Text(text = count.toString(),
-            fontSize = 18.sp)
+                Text(
+                    text = count.toString(),
+                    fontSize = 18.sp
+                )
 
-            Button(
-                onClick = {
-                    count++
-                    linkList.add("")
-                }) {
-                Text(text = "+")
+                Button(
+                    onClick = {
+                        count++
+                        linkList.add("")
+                    }) {
+                    Text(text = "+")
+                }
             }
         }
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            itemsIndexed(linkList) { i, link ->
-                TextField(value = link,
-                    onValueChange = {
-                        linkList[i] = it
+        itemsIndexed(linkList) { i, link ->
+            TextField(value = link,
+                onValueChange = {
+                    linkList[i] = it
                     },
                 label = { Text("Link " + (i + 1).toString()) })
-            }
         }
 
 
-        MaterialDialog(
-            dialogState = dialogState2,
-            buttons = {
-                positiveButton("Ok", onClick = {
+        item {
+            MaterialDialog(
+                dialogState = dialogState2,
+                buttons = {
+                    positiveButton("Ok", onClick = {
 
-                    val temp = deadDate.atTime(deadTime)
+                        val temp = deadDate.atTime(deadTime)
 
-                    val out = Date.from(temp.atZone(ZoneId.systemDefault()).toInstant())
-                    deadline = out.time
-                })
-                negativeButton("Cancel")
-            }
-        ) {
-            datepicker {
-                deadDate = it
-            }
+                        val out = Date.from(temp.atZone(ZoneId.systemDefault()).toInstant())
+                        deadline = out.time
+                    })
+                    negativeButton("Cancel")
+                }
+            ) {
+                datepicker {
+                    deadDate = it
+                }
 
-            timepicker {
-                deadTime = it
+                timepicker {
+                    deadTime = it
+                }
             }
         }
 
